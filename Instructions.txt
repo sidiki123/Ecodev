@@ -1,0 +1,19 @@
+L'idée est de concevoir un script (html/css/JS) en une seule page web (un seul fichier) qui permet de concevoir un modèle de cachet/tampon.
+Concevoir en une seule page web qui sera verticalement divisée en deux parties: 
+- A droite le formulaire permettant à l'utilisateur de renseigner ses informations;
+- A gauche un aperçu du cachet généré sur la base des informations de l'utilisateur.
+L'aperçu doit se mettre à jour automatiquement en temps réel à chaque modification de l'utilisateur.
+
+
+Vous devez:
+
+- écrire tout le code dans un seul fichier html
+
+- Envoyer votre soumission dans un délai d'une semaine maximum.
+
+- Pas besoin d'utiliser une base de donnée, les informations peuvent directement être stocké dans le localStorage 
+
+- Traiter et envoyer votre proposition dans les délais! quelque soit le niveau d'avancement.
+
+- Réaliser l'exercice vous même!
+

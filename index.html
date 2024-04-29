@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de cachet</title>
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            height: 100vh;
+        }
+        div form{
+            float: left;
+        }
+        div #preview-container{
+            float: right;
+            margin: 120px 100px 0 100px;
+        }
+        fieldset{
+            width: 150%;
+        }
+        form h3{
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        form{
+            margin: 60px 50px 0 100px;
+        }
+        form div{
+            padding: 10px;
+        }
+        form div * {
+            display: block;
+        }
+        form div label{
+            font-size: 16px;
+            font-weight: bold;
+        }
+        form div input{
+            position: relative;
+            width: 100%;
+            height: 30px;
+            margin-bottom: 8px;
+            margin-right: 10px;
+        }
+        .btn span{
+            position: absolute;
+            left: 50%;
+            transform-origin: 0 69px;
+        }    
+        #line {
+            position: relative;
+            width: 100px;
+            border: 1px solid #000;
+            margin-left: 1000px;
+       }
+    </style>
+</head>
+<body>
+   <div>
+        <form>   
+            <fieldset>
+                <h3>Renseignez les informations pour le tampon</h3>
+                <div>
+                    <label for="poste">Poste : </label>
+                    <input type="text" id="poste" name="poste" placeholder="Poste suivi nom et prénom" required>
+                </div>
+
+                <div>
+                    <label for="fullname">Nom complet : </label>
+                    <input type="text" id="fullname" name="fullname" placeholder="Nom complet" required>
+                </div>
+
+                <div>
+                    <label for="serment">Serment : </label>
+                    <input type="text" id="serment" name="serment" placeholder="Serment" required>
+                </div>
+
+                <div>
+                    <label for="company">Nom de la société : </label>
+                    <input type="text" id="company" name="company" placeholder="Nom de la société" required>
+                </div>
+            
+                <div>
+                    <label for="adresse">Adresse : </label>
+                    <input type="text" id="adresse" name="adresse" placeholder="Adresse" required>    
+                </div>
+                <div>
+                    <label for="numberTel">Numéro de téléphone : </label>
+                    <input type="number" name="numberTel" id="numberTel" placeholder="Numéro de téléphone">    
+                </div>
+            
+                <div>
+                    <label for="numberFax">Numéro fax : </label>
+                    <input type="number" name="numberFax" id="numberFax" placeholder="Numéro fax">
+                </div>
+
+                <div>
+                    <label for="numberToque">Numéro toque : </label>
+                    <input type="text" name="numberToque" id="numberToque" placeholder="Numéro toque">
+                </div>
+            </fieldset>
+        </form>
+        <div id="preview-container">
+            <h2>Aperçu du cachet:</h2>
+            <div id="stamp-preview-container">
+                <canvas id="stamp-preview" width="250" height="250"></canvas>
+            </div>
+        </div>
+   </div>
+   <div id="line"></div>
+   <script>
+        const positionInput = document.getElementById("poste");
+        const fullnameInput = document.getElementById("fullname");
+        const sermentInput = document.getElementById("serment");
+        const companyInput = document.getElementById("company");
+        const adresseInput = document.getElementById("adresse");
+        const numberTelInput = document.getElementById("numberTel");
+        const numberFaxInput = document.getElementById("numberFax");
+        const numberToqueInput = document.getElementById("numberToque");
+        const stampCanvas = document.getElementById("stamp-preview");
+        const ctx = stampCanvas.getContext('2d');
+
+        function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+            var rot = (Math.PI / 2) * 3;
+            var x = cx;
+            var y = cy;
+            var step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            for (var i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+            ctx.fillStyle = '#000';
+            ctx.fill();
+            }
+
+            function drawTextWithWrap(ctx, text, x, y, maxWidth, lineHeight) {
+            var words = text.split(' ');
+            var line = '';
+            for (var n = 0; n < words.length; n++) {
+                var testLine = line + words[n] + ' ';
+                var metrics = ctx.measureText(testLine);
+                var testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    ctx.fillText(line, x, y);
+                    line = words[n] + ' ';
+                    y += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, x, y);
+        }
+
+
+        function updatePreview(){
+            const company = companyInput.value.trim() || 'Entreprise';
+
+            const adresse = adresseInput.value.trim() || 'Adresse';
+            const numberTel = "Tél. " + (numberTelInput.value.trim() || 'Numéro de téléphone')
+            const numberFax = "Fax " + (numberFaxInput.value.trim() || 'Numéro fax');
+            const numberToque = "Toque n° " + (numberToqueInput.value.trim() || 'Numéro de toque');
+
+            ctx.clearRect(0, 0, stampCanvas.width, stampCanvas.height);
+
+
+            var text = positionInput.value.trim() + " " + fullnameInput.value.trim();
+            var radius = stampCanvas.width / 2 - 20; // Rayon de l'arc
+            var centerX = stampCanvas.width / 2; // Centre horizontal de l'arc
+            var centerY = stampCanvas.height / 2; // Centre vertical de l'arc
+            var angleStep = Math.PI / (text.length); // Angle entre chaque lettre
+
+            ctx.font = "20px Arial"; // Spécifie la police et la taille du texte
+            ctx.fillStyle = "#000"; // Couleur du texte
+
+            for (var i = 0; i < text.length; i++) {
+            var angle = i * angleStep - Math.PI; // Angle pour cette lettre
+            var x = centerX + radius * Math.cos(angle); // Calcul de la position x
+            var y = centerY + radius * Math.sin(angle); // Calcul de la position y
+
+            ctx.save(); // Sauvegarde le contexte
+            ctx.translate(x, y); // Translate le contexte à la position de la lettre
+            ctx.rotate(angle + Math.PI / 2); // Rotation pour aligner la lettre avec l'arc
+            ctx.fillText(text[i], 0, 0); // Affiche la lettre
+            ctx.restore(); // Restaure le contexte précédent
+            }
+             
+            var serment = sermentInput.value.trim() || 'Serment';
+
+            var radius1 = stampCanvas.width / 2 - 20; // Rayon de l'arc
+            var center1X = stampCanvas.width / 2; // Centre horizontal de l'arc
+            var center1Y = stampCanvas.height / 2; // Centre vertical de l'arc
+            var angleStep1 = Math.PI / (serment.length); 
+
+            for (var j = 0; j < serment.length; j++) {
+            var angle1 = i * angleStep1 - Math.PI; // Angle pour cette lettre
+            var x1 = center1X + radius * Math.cos(angle1); // Calcul de la position x
+            var y1 = center1Y + radius * Math.sin(angle1); // Calcul de la position y
+
+            ctx.save(); // Sauvegarde le contexte
+            ctx.translate(x1, y1); // Translate le contexte à la position de la lettre
+            ctx.rotate(angle1 + Math.PI / 2); // Rotation pour aligner la lettre avec l'arc
+            ctx.fillText(serment[j], 0, 0); // Affiche la lettre
+            ctx.restore(); // Restaure le contexte précédent
+            }
+
+            drawStar(ctx, stampCanvas.width / 2 - 110, stampCanvas.height / 2 + 15, 5, 10, 5);
+            drawStar(ctx, stampCanvas.width / 2 + 110, stampCanvas.height / 2 + 15, 5, 10, 5);
+
+            ctx.beginPath();
+            ctx.arc(stampCanvas.width / 2, stampCanvas.height / 2, stampCanvas.width / 2, 0, Math.PI * 2);
+            ctx.lineWidth = 2; 
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+            
+            ctx.beginPath();
+            ctx.arc(stampCanvas.width / 2, stampCanvas.height / 2, stampCanvas.width / 2 - 30, 0, Math.PI * 2);
+            ctx.lineWidth = 2; 
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+            
+            ctx.font = 'bold 15px Arial';
+            ctx.fillStyle = '#000';
+            ctx.textAlign = 'center';
+            ctx.fillText(company, stampCanvas.width / 2, stampCanvas.height / 2 - 50);
+            ctx.fillText(adresse, stampCanvas.width / 2, stampCanvas.height / 2 );
+            ctx.fillText(numberTel, stampCanvas.width / 2, stampCanvas.height / 2 + 20);
+            ctx.fillText(numberFax, stampCanvas.width / 2, stampCanvas.height / 2 + 40);
+            ctx.fillText(numberToque, stampCanvas.width / 2, stampCanvas.height / 2 + 60);
+        }
+    
+        // Ajoutez ces lignes à la fin de votre script
+
+        positionInput.addEventListener('input', updatePreview);
+        fullnameInput.addEventListener('input', updatePreview);
+        sermentInput.addEventListener('input', updatePreview);
+        companyInput.addEventListener('input', updatePreview);
+        adresseInput.addEventListener('input', updatePreview);
+        numberTelInput.addEventListener('input', updatePreview);
+        numberFaxInput.addEventListener('input', updatePreview);
+        numberToqueInput.addEventListener('input', updatePreview);
+
+        window.addEventListener('load', () => {
+            const storedPosition = localStorage.getItem('position');
+            const storedFullname = localStorage.getItem('fullname');
+            const storedSerment = localStorage.getItem('serment');
+            const storedCompany = localStorage.getItem('company');
+            const storedAdresse = localStorage.getItem('adresse');
+            const storedNumberTel = localStorage.getItem('numberTel');
+            const storedNumberFax = localStorage.getItem('numberFax');
+            const storedNumberToque = localStorage.getItem('numberToque');
+
+
+            if(storedPosition) positionInput.value = storedPosition;
+            if(storedFullname) fullnameInput.value = storedFullname;
+            if(storedPosition) sermentInput.value = storedSerment;
+            if(storedCompany) companyInput.value = storedCompany;
+            if(storedAdresse) adresseInput.value = storedAdresse;
+            if(storedNumberTel) numberTelInput.value = storedNumberTel;
+            if(storedNumberFax) numberFaxInput.value = storedNumberFax;
+            if(storedNumberToque) numberToqueInput.value = storedNumberToque;
+
+            updatePreview();
+        });
+
+        [companyInput, adresseInput, numberTelInput, numberFaxInput, numberToqueInput].forEach(input => {
+            input.addEventListener('input', () => {
+                localStorage.setItem('position', positionInput.value);
+                localStorage.setItem('fullname', fullnameInput.value);
+                localStorage.setItem('serment', sermentInput.value);
+                localStorage.setItem('company', companyInput.value);
+                localStorage.setItem('adresse', adresseInput.value);
+                localStorage.setItem('numberTel', numberTelInput.value);
+                localStorage.setItem('numberFax', numberFaxInput.value);
+                localStorage.setItem('numberToque', numberToqueInput.value);
+            })
+        });
+   </script>
+</body>
+</html>
